@@ -513,7 +513,11 @@ download_source(AppDir, {fossil, Url, Version}) ->
     rebar_utils:sh(?FMT("fossil clone ~s ~s", [Url, Repository]),
                    [{cd, AppDir}]),
     rebar_utils:sh(?FMT("fossil open ~s ~s --nested", [Repository, Version]),
-                   []).
+                   []);
+download_source(AppDir, {ln, Path}) ->
+    ok = filelib:ensure_dir(AppDir),
+    rebar_utils:sh(?FMT("ln -s -f ~s ~s", [Path, filename:basename(AppDir)]),
+                   [{cd, filename:dirname(AppDir)}]).
 
 update_source(Config, Dep) ->
     %% It's possible when updating a source, that a given dep does not have a
@@ -584,7 +588,9 @@ source_engine_avail(Name, Source)
         false ->
             ?ABORT("Rebar requires version ~p or higher of ~s to process ~p\n",
                    [required_vcs_client_vsn(Name), Name, Source])
-    end.
+    end;
+
+source_engine_avail(ln, _Source) -> true.
 
 vcs_client_vsn(false, _VsnArg, _VsnRegex) ->
     false;
